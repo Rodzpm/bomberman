@@ -12,9 +12,9 @@ class Game:
 
         pygame.mixer.init()
         pygame.mixer.set_num_channels(3)
-        self.explosion = pygame.mixer.Sound("explosion.ogg")
-        self.gamemusic = pygame.mixer.Sound("game.ogg")
-        self.gameover = pygame.mixer.Sound("gameover.ogg")
+        self.explosion = pygame.mixer.Sound("sound/explosion.ogg")
+        self.gamemusic = pygame.mixer.Sound("sound/game.ogg")
+        self.gameover = pygame.mixer.Sound("sound/gameover.ogg")
         self.canal_1 = pygame.mixer.Channel(0)
         self.canal_2 = pygame.mixer.Channel(1)
         self.canal_3 = pygame.mixer.Channel(2)
@@ -26,15 +26,15 @@ class Game:
         #clock pour les fps
         self.clock = pygame.time.Clock()
         #map du jeu
-        self.map = MapManager(res,5,(175, 175, 175),(34, 120, 15),(127, 127, 127),(255,0,0))
+        self.map = MapManager(res,5,pygame.image.load("img/wall.png"),pygame.image.load("img/ground.png"),pygame.image.load("img/block.png"),(255,0,0))
         self.gen_map = self.map.generate_map()
         #joueur
-        self.player = Player((50,50),pygame.image.load("player_1.png").convert_alpha(),4)
+        self.player = Player((50,50),pygame.image.load("img/player_1.png").convert_alpha(),4)
         #joueur2
-        self.player2 = Player((res[0]*40-80,res[1]*40-80),pygame.image.load("player_2.png").convert_alpha(),4)
+        self.player2 = Player((res[0]*40-80,res[1]*40-80),pygame.image.load("img/player_2.png").convert_alpha(),4)
         #liste avec tous les objets présents sur le jeu
         self.obj_list = []
-        self.bomb = pygame.image.load("bomb.png").convert_alpha()
+        self.bomb = pygame.image.load("img/bomb.png").convert_alpha()
         self.rectBomb = self.bomb.get_rect()
         #charging
         self.charging = False
@@ -50,17 +50,25 @@ class Game:
             for c in range(len(self.gen_map[l])):
                 o = self.gen_map[l][c]
                 if o.type == "ground":
-                    pygame.draw.rect(self.screen,self.map.sprites.ground,(c*40,l*40,40,40))
+                    o_rect = o.rect
+                    self.screen.blit(self.map.sprites.ground,o_rect)
+                    o_rect.topleft = (c*40,l*40)
                 elif o.type == "block":
-                    pygame.draw.rect(self.screen,self.map.sprites.block,(c*40,l*40,40,40))
+                    o_rect = o.rect
+                    self.screen.blit(self.map.sprites.block,o_rect)
+                    o_rect.topleft = (c*40,l*40)
                 elif o.type == "wall":
-                    pygame.draw.rect(self.screen,self.map.sprites.wall,(c*40,l*40,40,40))
+                    o_rect = o.rect
+                    self.screen.blit(self.map.sprites.wall,o_rect)
+                    o_rect.topleft = (c*40,l*40)
                 elif o.type == "fire":
                     if self.post_explo < 60:
                         pygame.draw.rect(self.screen,self.map.sprites.fire,(c*40,l*40,40,40))
                     else:
                         o.type = "ground"
-                        pygame.draw.rect(self.screen,self.map.sprites.ground,(c*40,l*40,40,40))
+                        o_rect = o.rect
+                        self.screen.blit(self.map.sprites.ground,o_rect)
+                        o_rect.topleft = (c*40,l*40)
                         
         #affiche les objets
         for obj in self.obj_list:
@@ -76,10 +84,10 @@ class Game:
         #pygame.draw.rect(self.screen,self.player.sprite,(self.player.x,self.player.y,20,20))
 
         if self.win1:
-            win = pygame.image.load("win1.png").convert_alpha()
+            win = pygame.image.load("img/win1.png").convert_alpha()
             self.screen.blit(win,(350,150))
         elif self.win2:
-            win = pygame.image.load("win2.png").convert_alpha()
+            win = pygame.image.load("img/win2.png").convert_alpha()
             self.screen.blit(win,(350,150))
 
     def handle_inputs(self,key_list,player):
@@ -94,7 +102,6 @@ class Game:
             player.move_right() 
         elif pressed[key_list[4]] and not self.charging:
             self.obj_list.append(Object((0,0,255),(player.x//40*40+15,player.y//40*40+15),10,10,self.res))
-            print(self.obj_list[-1].x,self.obj_list[-1].y)
             self.charging = True
 
     def verif_coll(self,player):
@@ -120,7 +127,6 @@ class Game:
                 explosion_list = obj.explosion()
                 self.canal_2.play(self.explosion,0)
                 for tile in explosion_list:
-                    print(tile[1],tile[0])
                     if self.gen_map[tile[1]][tile[0]].type in ["ground","block"]:
                         self.gen_map[tile[1]][tile[0]].type = "fire"
                 self.obj_list.remove(obj)
