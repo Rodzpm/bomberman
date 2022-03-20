@@ -25,7 +25,7 @@
 #
 
 ## How to Use:
-```cs
+```
 [1] after following the previous instructions run the program main.py
 [2] left player commands: zqsd to move, space to throw a bomb
 [3] right player commands: directional arrows to move, enter to throw a bomb
